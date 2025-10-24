@@ -1,8 +1,8 @@
 # ============================================================================
 # ============================================================================
-# Soil Organic Carbon (SOC) prediction workflow using CAST
+# SOCastR: Soil Organic Carbon (SOC) prediction workflow considering 
+# spatial dependencies 
 # ============================================================================
-# Spatial SOC prediction considering spatial dependencies and uncertainties 
 # ============================================================================
 # ============================================================================
 
@@ -831,6 +831,7 @@ write.csv(aoa_summary, paste0(getwd(),output_dir, "AOA_SummaryStatistics.csv"),
 cat("\n=== AOA COMPUTATION COMPLETED ===\n")
 print(aoa_summary)
 cat("\n")
+
 
 
 
