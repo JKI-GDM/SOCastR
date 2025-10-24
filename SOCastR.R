@@ -37,41 +37,43 @@ for (pkg in required_packages) {
 set.seed(42)  # For reproducibility
 
 
-# Directories
+# Set directories
 rm(list = ls())# Clear workspace
-setwd("d:/Dropbox/GIT/SOCopt")
+setwd("D:/Dropbox/GIT/SOCastR")
 getwd()
-input_dir <- "/INPUT/"
-output_dir <- "/OUTPUT/"
+input_dir <- "input"
+output_dir <- "output"
 
 # Create output directory if it doesn't exist
 if (!dir.exists(output_dir)) {dir.create(output_dir, recursive = TRUE) }
 
+# Options for the approach of covariate extraction 
+#(TRUE -> median of 9 raster cell values around the sample points)
+#(FALSE -> corresponding raster cell is used)
+NinePixelFilter=TRUE 
 
+# number of tiles for the the aoa uncertainty calcualtion 
+n.tile = 5
 
 # ============================================================================
 # DATA LOADING AND PREPARATION
 # ============================================================================
-
 cat("=" , rep("=", 79), "\n", sep = "")
 cat("DATA LOADING AND PREPARATION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
 
 # Input data
-samples <- "SAMPLES_LFL_EPSG25832.shp"
+samples <- "SAMPLES_EPSG25832.shp"
 covariats <- "COVARIATS_EPSG25832.tif"
-soc_column <- "c_rg_vl"
-NinePixelFilter=TRUE 
-# TRUE -> a median of 9 raster cell values around the sample points is derived from the covariats
-# FALSE -> the corresponding raster cell is used for deriving the associated corvariats' values 
-n.tile = 5
+soc_column <- "SOC"
+
 
 # Load sample data (assuming we have SOC samples as shapefile)
-soc_samples <- st_read(paste0(getwd(),input_dir,samples))
+soc_samples <- st_read(file.path(getwd(),input_dir,samples))
 cat(paste("Loaded", nrow(soc_samples), "sample points\n"))
 
 # Load raster covariates (GeoTIFF stack)
-covariates <- rast(paste0(getwd(),input_dir,covariats))
+covariates <- rast(file.path(getwd(),input_dir,covariats))
 cat(paste("Loaded", nlyr(covariates), "covariate layers\n"))
 cat(paste("Raster resolution:", res(covariates), "x", res(covariates), "m\n"))
 
