@@ -1,11 +1,12 @@
 # ============================================================================
 # ============================================================================
-# SOCastR: Soil Organic Carbon (SOC) prediction workflow considering 
-# spatial dependencies 
+# SOCastR: Soil Organic Carbon (SOC) prediction workflow with uncertainties 
 # ============================================================================
 # ============================================================================
 # ============================================================================
-
+cat("=" , rep("=", 79), "\n", sep = "")
+cat("SOCastR: Soil Organic Carbon (SOC) prediction workflow with uncertainties\n")
+cat("=" , rep("=", 79), "\n\n", sep = "")
 
 
 # ============================================================================
@@ -14,13 +15,16 @@
 # Load required packages with version checking
 required_packages <- c("CAST", # Spatial prediction and validation
                        "caret",# Machine learning framework
+                       "classInt", # Class intervals for mapping
                        "dplyr",# Data manipulation
+                       "doParallel",# Parallelization
                        "terra",# Raster data handling
+                       "tidyterra", # Visualise SpatRaster objects
                        "sf",# Vector data handling
                        "randomForest",# Random Forest algorithm
+                       "RColorBrewer", #  Color schemes for maps 
                        "quantregForest",# Quantile regression forests for uncertainty
                        "ggplot2",# Visualization
-                       "doParallel",# Parallelization
                        "viridis",# Color palettes
                        "gridExtra",# Multiple plots
                        "grid")# Graphics
@@ -32,28 +36,29 @@ for (pkg in required_packages) {
   }
 }
 
+# ============================================================================
+# MAIN FUNCTION
+# ============================================================================
+
+SOCastR <- function(working_dir,
+                    input_dir,
+                    output_dir,
+                    samples,
+                    covariates,
+                    soc_column,
+                    n.tile = 4,
+                    model_uncertainty=TRUE,
+                    distance_uncertainty=TRUE){
 
 # Set up the environment
 set.seed(42)  # For reproducibility
 
-
 # Set directories
-rm(list = ls())# Clear workspace
-setwd("D:/Dropbox/GIT/SOCastR")
+setwd(working_dir)
 getwd()
-input_dir <- "input"
-output_dir <- "output"
 
 # Create output directory if it doesn't exist
 if (!dir.exists(output_dir)) {dir.create(output_dir, recursive = TRUE) }
-
-# Options for the approach of covariate extraction 
-#(TRUE -> median of 9 raster cell values around the sample points)
-#(FALSE -> corresponding raster cell is used)
-NinePixelFilter=TRUE 
-
-# number of tiles for the the aoa uncertainty calcualtion 
-n.tile = 5
 
 # ============================================================================
 # DATA LOADING AND PREPARATION
@@ -62,18 +67,12 @@ cat("=" , rep("=", 79), "\n", sep = "")
 cat("DATA LOADING AND PREPARATION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
 
-# Input data
-samples <- "SAMPLES_EPSG25832.shp"
-covariats <- "COVARIATS_EPSG25832.tif"
-soc_column <- "SOC"
-
-
 # Load sample data (assuming we have SOC samples as shapefile)
 soc_samples <- st_read(file.path(getwd(),input_dir,samples))
 cat(paste("Loaded", nrow(soc_samples), "sample points\n"))
 
 # Load raster covariates (GeoTIFF stack)
-covariates <- rast(file.path(getwd(),input_dir,covariats))
+covariates <- rast(file.path(getwd(),input_dir,covariates))
 cat(paste("Loaded", nlyr(covariates), "covariate layers\n"))
 cat(paste("Raster resolution:", res(covariates), "x", res(covariates), "m\n"))
 
@@ -81,14 +80,98 @@ cat(paste("Raster resolution:", res(covariates), "x", res(covariates), "m\n"))
 names(covariates) <- paste0("COV",1:length(names(covariates)))
 print("Data loaded successfully")
 
-
 # ============================================================================
-# EXTRACT VALUES INCLUDING SURROUNDING 8 CELLS
+# FUNCTIONS
 # ============================================================================
-cat("=" , rep("=", 79), "\n", sep = "")
-cat("EXTRACT (FILTERED) VALUES\n")
-cat("=" , rep("=", 79), "\n\n", sep = "")
+# Plotting of raster data
+PlotR <- function(raster_result,
+                  color_schema,
+                  legend_title,
+                  revers = FALSE,
+                  accuracy = 0.01,
+                  ClassIntervallMethod = "quantile",
+                  n_classes = 9){
+  
+  # Calculate breaks
+  raster_values <- values(raster_result, na.rm = TRUE)
+  breaks_result <- classIntervals(raster_values, n = n_classes, style = ClassIntervallMethod)
+  breaks_values <- breaks_result$brks
+  
+  # Create reclassification matrix: from, to, new_value
+  rcl <- cbind(breaks_values[-length(breaks_values)], 
+               breaks_values[-1], 
+               1:n_classes)
+  
+  # Classify raster
+  raster_class <- classify(raster_result, rcl, include.lowest = TRUE)
+  
+  # Set factor levels with meaningful labels
+  breaks_labels <- sprintf(paste0("%.", abs(log10(accuracy)), "f"), breaks_values)
+  class_labels <- paste0(breaks_labels[-length(breaks_labels)], 
+                         " - ", 
+                         breaks_labels[-1])
+  
+  levels(raster_class) <- data.frame(value = 1:n_classes, 
+                                     class = class_labels)
+  
+  # Get colors
+  if(n_classes <= 9){
+    colors <- brewer.pal(n_classes, color_schema)
+  } else {
+    base <- brewer.pal(9, color_schema)
+    colors <- colorRampPalette(base)(n_classes)
+  }
+  
+  if(revers){
+    colors <- rev(colors)
+  }
+  
+  # Plot
+  ggplot() +
+    geom_spatraster(data = raster_class) +
+    scale_fill_manual(values = colors,
+                      name = legend_title,
+                      na.value = "lightgrey") +
+    theme_minimal() +
+    theme(panel.background = element_rect(fill = "white", colour = NA),
+          plot.background = element_rect(fill = "white", colour = NA),
+          panel.grid.major = element_line(colour = "black", linewidth = 0.2),
+          panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+          axis.text = element_text(size = 11, colour = "black"),
+          legend.key.height = unit(1, "cm"),
+          legend.text = element_text(size = 11))
+}
 
+# Plotting point data 
+SFPlotR <- function(sf_points,
+                   split_col = "split",
+                   legend_title = "Dataset",
+                   colors = c("Train" = "#0077BB", "Test" = "#CC3311")) {
+  
+  ggplot() +
+    geom_sf(data = sf_points,
+            aes_string(color = split_col),
+            size = 2,
+            alpha = 0.7) +
+    scale_color_manual(values = colors,
+                       name = legend_title,
+                       na.value = "lightgrey") +
+    theme_minimal() +
+    theme(
+      panel.background = element_rect(fill = "white", colour = NA),
+      plot.background = element_rect(fill = "white", colour = NA),
+      panel.grid.major = element_line(colour = "black", linewidth = 0.2),
+      panel.border = element_rect(colour = "black", fill = NA, linewidth = 0.5),
+      axis.text = element_text(size = 11, colour = "black"),
+      legend.key.height = unit(1, "cm"),
+      legend.text = element_text(size = 11),
+      legend.position = "right"
+    ) +
+    labs(title = "Training and Test Samples",
+         x = "Longitude", y = "Latitude")
+}
+
+# Raster sample extraction using 9 cells 
 extract_8_neighbors <- function(raster_stack, points) {
   # Get cell numbers for point locations
   cell_numbers <- cellFromXY(raster_stack, st_coordinates(points))
@@ -123,12 +206,63 @@ extract_8_neighbors <- function(raster_stack, points) {
   return(result_df)
 }
 
-if(NinePixelFilter==TRUE){
-  # Use 3x3p pixel extraction method
+
+predict_quantreg_raster <- function(covariates, model, quantiles, n_cores = NULL) {
+  library(terra)
+  library(parallel)
+  library(quantregForest)
+  
+  if (is.null(n_cores)) n_cores <- max(1, parallel::detectCores() - 1)
+  temp_cov <- tempfile(fileext = ".tif")
+  temp_out <- tempfile()
+  dir.create(temp_out)
+  writeRaster(covariates, temp_cov, overwrite = TRUE)
+  cat(sprintf("Processing %d quantiles with %d cores\n", length(quantiles), n_cores))
+  
+  cl <- makeCluster(n_cores)
+  on.exit(stopCluster(cl))
+  
+  # Load necessary libraries and variables on workers
+  clusterEvalQ(cl, {
+    library(terra)
+    library(quantregForest)
+  })
+  clusterExport(cl, c("temp_cov", "model", "temp_out", "quantiles"), envir = environment())
+  
+  start_time <- Sys.time()
+  
+  result_files <- parLapply(cl, seq_along(quantiles), function(i) {
+    library(terra)
+    q <- quantiles[i]
+    cov <- rast(temp_cov)
+    qrf_fun <- function(model, data) predict(model, newdata = data, what = q)
+    pred <- terra::predict(cov, model, fun = qrf_fun, na.rm = TRUE)
+    out_file <- file.path(temp_out, sprintf("quantile_%02d.tif", i))
+    writeRaster(pred, out_file, overwrite = TRUE)
+    return(out_file)
+  })
+  
+  end_time <- Sys.time()
+  elapsed <- as.numeric(difftime(end_time, start_time, units = "mins"))
+  cat(sprintf("Completed in %.2f minutes (%.1f sec per quantile)\n",
+              elapsed, elapsed * 60 / length(quantiles)))
+  results <- lapply(result_files, rast)
+  names(results) <- paste0("q", gsub("\\.", "", quantiles))
+  unlink(temp_cov)
+  unlink(temp_out, recursive = TRUE)
+  return(results)
+}
+
+
+# ============================================================================
+# EXTRACT VALUES INCLUDING SURROUNDING 8 CELLS
+# ============================================================================
+cat("=" , rep("=", 79), "\n", sep = "")
+cat("EXTRACT (FILTERED) VALUES\n")
+cat("=" , rep("=", 79), "\n\n", sep = "")
+
+# Use 3x3p pixel extraction method
   extracted_covariates <- extract_8_neighbors(covariates, soc_samples)
-}else{
-  # Extract covariate values at sample locations
-  extracted <- terra::extract(covariates, vect(soc_samples))}
 
 # Combine SOC values with extracted covariates
 model_data <- cbind(
@@ -138,7 +272,6 @@ model_data <- cbind(
 
 print("Covariate extraction completed")
 print(paste("Final dataset dimensions:", paste(dim(model_data), collapse = " x ")))
-
 
 # Remove NA values
 complete_idx <- complete.cases(model_data)
@@ -161,13 +294,15 @@ data_summary <- data.frame(
             round(min(model_data_clean$SOC), 2),
             round(max(model_data_clean$SOC), 2))
 )
-write.csv(data_summary, paste0(getwd(),output_dir, "ExtractValues_DataSummary.csv"), row.names = FALSE)
+# Export
+write.csv(data_summary, file.path(getwd(),output_dir, "ExtractValues_SampleDataSummary.csv"), row.names = FALSE)
 
 
 # =============================================================================
 # SPATIAL DATA PARTITION: STRATIFIED TRAIN/TEST SPLIT
 # =============================================================================
 set.seed(42)
+
 # 1. Create spatial folds for stratified splitting (e.g., 5 folds)
 spatial_folds_obj <- CreateSpacetimeFolds(
   soc_samples_clean,
@@ -190,8 +325,10 @@ cat(paste("Training samples:", nrow(train_data),
 cat(paste("Test samples:", nrow(test_data), 
           "(", round(100 * length(test_idx_spatial) / nrow(model_data_clean), 1), "%)\n"))
 
+
 # 3. Visualization of the split
-coords_all <- st_coordinates(soc_samples_clean)
+soc_samples_clean_epsg4326 <- st_transform(soc_samples_clean, crs = 4326)
+coords_all <- st_coordinates(soc_samples_clean_epsg4326)
 visual_split <- data.frame(
   x = coords_all[, 1],
   y = coords_all[, 2],
@@ -201,25 +338,26 @@ visual_split <- data.frame(
 visual_split$split[train_idx_spatial] <- "Train"
 visual_split$split <- factor(visual_split$split, levels = c("Train", "Test"))
 
-p_spatial <- ggplot(visual_split, aes(x = x, y = y, color = split, shape = split)) +
-  geom_point(size = 3, alpha = 0.7) +
-  scale_color_manual(values = c("Train" = "#2E86AB", "Test" = "#A23B72")) +
-  scale_shape_manual(values = c("Train" = 16, "Test" = 17)) +
-  labs(
-    title = "Spatial Blocking Train/Test Split (CreateSpacetimeFolds)",
-    subtitle = sprintf("Train: %d | Test: %d", nrow(train_data), nrow(test_data)),
-    x = "Longitude",
-    y = "Latitude",
-    color = "Set",
-    shape = "Set"
-  ) +
-  theme_minimal() +
-  coord_equal() +
-  theme(legend.position = "bottom")
 
-print(p_spatial)
+# Create sf object
+visual_split_sf <- st_as_sf(visual_split,
+                            coords = c("x", "y"),
+                            crs = 4326)
 
-ggsave(paste0(getwd(),output_dir,"SpatialDataPartition_TrainTestSplitMap.png"), p_spatial, width = 10, height = 8, dpi = 300)
+# Usage example:
+visual_split_sf <- st_as_sf(visual_split,
+                            coords = c("x", "y"),
+                            crs = 4326)
+
+p_spatial <- SFPlotR(visual_split_sf)
+
+# Export
+ggsave(file.path(getwd(),output_dir,"SpatialDataPartition_MapTrainTestSplit.png"), 
+       p_spatial, 
+       width = 5, 
+       height = 6, 
+       dpi = 300)
+
 
 # 4. Distribution assessment
 p_soc_dist <- ggplot(visual_split, aes(x = SOC, fill = split)) +
@@ -234,10 +372,15 @@ p_soc_dist <- ggplot(visual_split, aes(x = SOC, fill = split)) +
   theme_minimal() +
   theme(legend.position = "bottom")
 
-ggsave(paste0(getwd(),output_dir,"SpatialDataPartition_SocDistSpatialBlock.png"), p_soc_dist, width = 8, height = 6, dpi = 300)
+# Export
+ggsave(file.path(getwd(),output_dir,"SpatialDataPartition_SocDistSpatialBlock.png"), 
+       p_soc_dist, 
+       width = 7, 
+       height = 6, 
+       dpi = 300)
+
 
 # 5. Statistical comparison
-library(stats)
 ks_result <- ks.test(train_data$SOC, test_data$SOC)
 
 split_stats <- data.frame(
@@ -258,7 +401,8 @@ split_stats <- data.frame(
     round(ks_result$statistic, 4), round(ks_result$p.value, 4)
   )
 )
-write.csv(split_stats, paste0(getwd(),output_dir,"SpatialDataPartition_TrainTestStatisticsSpatialBlock.csv"), row.names = FALSE)
+# Export
+write.csv(split_stats, file.path(getwd(),output_dir,"SpatialDataPartition_TrainTestStatisticsSpatialBlock.csv"), row.names = FALSE)
 
 cat("Spatial stratified split visualization and statistics completed.\n\n")
 
@@ -272,13 +416,12 @@ cat("=" , rep("=", 79), "\n\n", sep = "")
 
 # Create spatial folds using KNNDM on training data only
 detectCores()
-cl <- makeCluster(32)
+cl <- makeCluster(detectCores()-1)
 registerDoParallel(cl)
 spatial_folds_train <- knndm(train_samples, covariates, k = 5)
 stopCluster(cl)
 
 cat(paste("Created", length(spatial_folds_train$indx_train), "spatial CV folds\n"))
-
 
 # Geodist analysis
 geodist_result <- geodist(
@@ -295,10 +438,17 @@ p_geodens <- plot(geodist_result, unit = "km") +
   ggtitle("Spatial CV Validation: Distance densities") +
   theme_minimal()
 
-ggsave(paste0(getwd(),output_dir, "SpatialCrossValidation_GeodistEcdf.png"), p_geodist, 
-       width = 10, height = 6, dpi = 300)
-ggsave(paste0(getwd(),output_dir, "SpatialCrossValidation_GeodistDensity.png"), p_geodens, 
-       width = 10, height = 6, dpi = 300)
+# Export
+ggsave(file.path(getwd(),output_dir, "SpatialCrossValidation_GeodistEcdf.png"), 
+       p_geodist, 
+       width = 7, 
+       height = 5, 
+       dpi = 300)
+ggsave(file.path(getwd(),output_dir, "SpatialCrossValidation_GeodistDensity.png"), 
+       p_geodens, 
+       width = 7, 
+       height = 5, 
+       dpi = 300)
 
 
 cat("Geodist analysis completed and saved.\n\n")
@@ -317,7 +467,8 @@ geodist_summary <- geodist_result %>%
     max = max(dist, na.rm = TRUE),
     sd = sd(dist, na.rm = TRUE))
 
-write.csv(geodist_summary, paste0(getwd(),output_dir, "SpatialCrossValidation_GeodistMetrics.csv"), 
+# Export
+write.csv(geodist_summary, file.path(getwd(),output_dir, "SpatialCrossValidation_GeodistMetrics.csv"), 
           row.names = FALSE)
 
 
@@ -327,7 +478,6 @@ write.csv(geodist_summary, paste0(getwd(),output_dir, "SpatialCrossValidation_Ge
 cat("=" , rep("=", 79), "\n", sep = "")
 cat("FORWARD FEATURE SELECTION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
-
 
 # 1. Prepare data
 predictors <- names(train_data)[names(train_data) != "SOC"]
@@ -388,7 +538,9 @@ ffs_results <- data.frame(
   Variable = ffs_model$selectedvars,
   Selection_order = 1:length(ffs_model$selectedvars)
 )
-write.csv(ffs_results, paste0(getwd(),output_dir, "ForwardFeatureSelection_SelectedVariables.csv"), 
+
+# Export
+write.csv(ffs_results, file.path(getwd(),output_dir, "ForwardFeatureSelection_SelectedVariables.csv"), 
           row.names = FALSE)
 
 
@@ -423,8 +575,13 @@ var_imp_df <- data.frame(
 )
 var_imp_df <- var_imp_df[order(var_imp_df$Importance, decreasing = TRUE), ]
 
-write.csv(var_imp_df, paste0(getwd(),output_dir, "VariableImportance.csv"), 
+
+# Export
+write.csv(var_imp_df, file.path(getwd(),output_dir, "FinalModel_VariableImportance.csv"), 
           row.names = FALSE)
+write.csv(data.frame(final_model$results), file.path(getwd(),output_dir, "FinalModel_Accuracy.csv"), 
+          row.names = FALSE)
+
 
 # Plot variable importance
 p_varimp <- ggplot(var_imp_df, aes(x = reorder(Variable, Importance), y = Importance)) +
@@ -437,15 +594,20 @@ p_varimp <- ggplot(var_imp_df, aes(x = reorder(Variable, Importance), y = Import
   ) +
   theme_minimal()
 
-ggsave(paste0(getwd(),output_dir,"VariableImportance.png"), p_varimp, 
-       width = 8, height = 6, dpi = 300)
+# Export
+ggsave(file.path(getwd(),output_dir,"ForwardFeatureSelection_VariableImportance.png"), 
+       p_varimp, 
+       width = 5, 
+       height = 5, 
+       dpi = 300)
 
 
 # ============================================================================
-# INDEPENDENT TEST SET VALIDATION
+# EXTERNAL VALIDATION
 # ============================================================================
+
 cat("=" , rep("=", 79), "\n", sep = "")
-cat("INDEPENDENT TEST SET VALIDATION\n")
+cat("EXTERNAL VALIDATION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
 
 # Predict on test set
@@ -475,11 +637,11 @@ cv_performance <- data.frame(
 
 # Combine performance metrics
 performance_comparison <- rbind(cv_performance, test_performance)
-performance_comparison$Difference <- c(0, 
-                                       test_performance$RMSE - cv_performance$RMSE)
+performance_comparison$Difference <- c(0, test_performance$RMSE - cv_performance$RMSE)
 
+# Export
 write.csv(performance_comparison, 
-          paste0(getwd(),output_dir, "Validation_PerformanceComparison.csv"), 
+          file.path(getwd(),output_dir, "Validation_PerformanceComparison.csv"), 
           row.names = FALSE)
 
 cat("=== PERFORMANCE COMPARISON ===\n")
@@ -489,8 +651,7 @@ cat("\n")
 # Create validation scatter plot
 validation_df <- data.frame(
   Observed = test_data$SOC,
-  Predicted = test_predictions
-)
+  Predicted = test_predictions)
 
 p_validation <- ggplot(validation_df, aes(x = Observed, y = Predicted)) +
   geom_point(alpha = 0.6, color = "#2E86AB", size = 3) +
@@ -510,8 +671,12 @@ p_validation <- ggplot(validation_df, aes(x = Observed, y = Predicted)) +
     plot.subtitle = element_text(size = 10, color = "gray40")
   )
 
-ggsave(paste0(getwd(),output_dir, "Validation_ScatterPlot.png"), p_validation, 
-       width = 8, height = 8, dpi = 300)
+# Export
+ggsave(file.path(getwd(),output_dir, "Validation_ScatterPlot.png"), 
+       p_validation, 
+       width = 6, 
+       height = 6, 
+       dpi = 300)
 
 # Residual plot
 validation_df$Residual <- validation_df$Predicted - validation_df$Observed
@@ -527,13 +692,17 @@ p_residuals <- ggplot(validation_df, aes(x = Predicted, y = Residual)) +
   ) +
   theme_minimal()
 
-ggsave(paste0(getwd(),output_dir, "Validation_ResidualPlot.png"), p_residuals, 
-       width = 8, height = 6, dpi = 300)
+# Export
+ggsave(file.path(getwd(),output_dir, "Validation_ResidualPlot.png"), 
+       p_residuals, 
+       width = 6, 
+       height = 6, 
+       dpi = 300)
 
 cat("Test set validation completed and visualizations saved.\n\n")
 
 # ============================================================================
-# RETRAIN ON ALL DATA FOR FINAL PREDICTION
+# ALL DATA PREDICTION: RANDOM FOREST
 # ============================================================================
 cat("=" , rep("=", 79), "\n", sep = "")
 cat("RETRAIN ON ALL DATA FOR FINAL PREDICTION\n")
@@ -541,13 +710,17 @@ cat("=" , rep("=", 79), "\n\n", sep = "")
 
 # Stop all parallel processing
 stopImplicitCluster()
-registerDoSEQ()  # Register sequential backend
+registerDoSEQ()  # Register sequential back end
 
 # Close any open connections
 closeAllConnections()
 
-# Create spatial folds for full dataset
+# Create spatial folds for full sample data set
+detectCores()
+cl <- makeCluster(detectCores()-1)
+registerDoParallel(cl)
 spatial_folds_full <- knndm(soc_samples_clean, covariates, k = 5)
+stopCluster(cl)
 
 # Train final model on all data with PARALLEL DISABLED
 final_model_full <- train(
@@ -560,22 +733,16 @@ final_model_full <- train(
     index = spatial_folds_full$indx_train,
     indexOut = spatial_folds_full$indx_test,
     savePredictions = "final",
-    allowParallel = FALSE  # CRITICAL: Disable parallel processing
+    allowParallel = FALSE  
   ),
   ntree = 500,
   importance = TRUE
 )
 
-
-# ============================================================================
-# SPATIAL PREDICTION
-# ============================================================================
-
+# Prediction
 cat("=" , rep("=", 79), "\n", sep = "")
 cat("SPATIAL PREDICTION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
-
-cat("Creating SOC prediction map...\n")
 
 # Create SOC prediction map
 soc_prediction <- terra::predict(covariates, final_model_full, na.rm = TRUE)
@@ -583,18 +750,180 @@ names(soc_prediction) <- "SOC_predicted"
 
 cat("SOC prediction map created.\n")
 
-# Save prediction raster
+# Export prediction raster
 writeRaster(soc_prediction, 
-            paste0(getwd(),output_dir, "FinalPrediction_SocRasterMap.tif"), 
+            file.path(getwd(),output_dir, "FinalPrediction_SocRaster.tif"), 
             overwrite = TRUE)
+
 cat("Prediction map saved.\n\n")
 
+# Export 
+plot_prediction <- PlotR(soc_prediction,"YlOrBr","SOC [%]")
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapSocRF.png"), 
+       plot_prediction, 
+       width = 6, 
+       height = 7, dpi = 300)
+
+
 # ============================================================================
-# 11. UNCERTAINTY QUANTIFICATION
+# MODEL-BASED UNCERTAINTY: PREDICTION INTERVALLS
+# ============================================================================# ============================================================================
+
+if(model_uncertainty==TRUE){
+cat("=", rep("=", 79), "\n", sep = "")
+cat("MODEL UNCERTAINTY: QUANTILE REGRESSION FOREST UNCERTAINTY LAYERS\n")
+cat("=", rep("=", 79), "\n\n", sep = "")
+
+# Prepare training data for QRF
+train_x <- model_data_clean[, ffs_model$selectedvars, drop = FALSE]
+train_y <- model_data_clean$SOC
+
+# Fit quantile regression forest model
+cat("Training quantile regression forest model...\n")
+qrf_model <- quantregForest(
+  x = train_x,
+  y = train_y,
+  ntree = 500,
+  importance = TRUE
+)
+
+# Calculate accuracy metrics for median prediction
+qrf_model.lm <- lm(train_y ~ qrf_model$predicted)
+qrf_model.lm.R2 <- summary(qrf_model.lm)$r.squared
+qrf_model.lm.RMSE <- sqrt(mean((train_y - qrf_model$predicted)^2))
+
+# Export training results
+qrf_model.accuracy <- data.frame(
+  R_squared = qrf_model.lm.R2,
+  RMSE = qrf_model.lm.RMSE,
+  Method = "Quantile_Regression_Forest"
+)
+
+# Export
+write.csv(qrf_model.accuracy, 
+          file.path(getwd(), output_dir, "QuantilePrediction_Accuracy.csv"), 
+          row.names = FALSE)
+
+cat("QRF model training completed.\n\n")
+
+# Define quantiles for prediction intervals
+quantiles <- c(0.05, 0.5, 0.95)
+
+# Predict quantiles on raster stack - CORRECTED VERSION
+cat("Generating quantile predictions across spatial domain...\n")
+
+# Create separate predictions for each quantile
+soc_q05 <- terra::predict(
+  covariates,
+  qrf_model,
+  na.rm = TRUE,
+  fun = function(model, data) {
+    predict(model, data, what = 0.05)
+  }
+)
+
+soc_q50 <- terra::predict(
+ covariates,
+  qrf_model,
+  na.rm = TRUE,
+  fun = function(model, data) {
+    predict(model, data, what = 0.5)
+  }
+)
+
+soc_q95 <- terra::predict(
+  covariates,
+  qrf_model,
+  na.rm = TRUE,
+  fun = function(model, data) {
+    predict(model, data, what = 0.95)
+  }
+)
+
+#ncores <- detectCores() - 1
+#quantile_results <- predict_quantreg_raster(
+#  covariates = covariates,
+#  model = qrf_model,
+#  quantiles = c(0.05, 0.5, 0.95),
+#  n_cores = ncores
+#)
+#soc_q05 <- quantile_results$q005
+#soc_q50 <- quantile_results$q05
+#soc_q95 <- quantile_results$q095
+
+# Combine into one SpatRaster stack
+soc_qrf_pred <- c(soc_q05, soc_q50, soc_q95)
+names(soc_qrf_pred) <- c("SOC_q05", "SOC_q50", "SOC_q95")
+
+
+cat("Quantile predictions completed.\n\n")
+
+# Calculate prediction interval width (95% - 5%)
+soc_qrf_interval_width <- soc_qrf_pred$SOC_q95 - soc_qrf_pred$SOC_q05
+names(soc_qrf_interval_width) <- "SOC_PI_width"
+
+# Combine all layers
+soc_qrf_stack <- c(soc_qrf_pred, soc_qrf_interval_width)
+
+# Export
+writeRaster(soc_qrf_stack,
+            file.path(getwd(), output_dir, "FinalPrediction_SocQuantileLayers.tif"),
+            overwrite = TRUE)
+
+cat("Quantile prediction raster layers saved.\n")
+
+# Summary statistics
+pi_summary <- data.frame(
+  Metric = c("Mean_PI_width", "Median_PI_width", "95th_percentile_width"),
+  Value = c(
+    round(mean(values(soc_qrf_interval_width), na.rm = TRUE), 3),
+    round(median(values(soc_qrf_interval_width), na.rm = TRUE), 3),
+    round(quantile(values(soc_qrf_interval_width), 0.95, na.rm = TRUE), 3)
+  )
+)
+write.csv(pi_summary, 
+          file.path(getwd(), output_dir, "QuantilePrediction_UncertaintySummary.csv"), 
+          row.names = FALSE)
+
+cat("Quantile-based uncertainty summary statistics saved.\n\n")
+
+# Export
+
+plot_prediction <- PlotR(soc_qrf_pred$SOC_q05,"YlOrBr","SOC [%]")
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapQuantialSoc5Percentile.png"), 
+       plot_prediction, 
+       width = 6, 
+       height = 7, dpi = 300)
+
+plot_prediction <- PlotR(soc_qrf_pred$SOC_q50,"YlOrBr","SOC [%]")
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapQuantialSoc50Percentile.png"), 
+       plot_prediction, 
+       width = 6, 
+       height = 7, dpi = 300)
+
+plot_prediction <- PlotR(soc_qrf_pred$SOC_q95,"YlOrBr","SOC [%]")
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_QuantialMapSoc95Percentile.png"), 
+       plot_prediction, 
+       width = 6, 
+       height = 7, dpi = 300)
+
+plot_PIW <- PlotR(soc_qrf_interval_width,"Spectral","PIW (90%)",revers=TRUE)
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapPIW90.png"), 
+       plot_PIW, 
+       width = 6, 
+       height = 7, dpi = 300)
+
+
+cat("Quantile prediction maps saved.\n")
+}
+
+# ============================================================================
+# DISTANCE-BASED UNCERTAINTY QUANTIFICATION: DISSIMILARITY INDEX
 # ============================================================================
 
+if(distance_uncertainty==TRUE){
 cat("=" , rep("=", 79), "\n", sep = "")
-cat("UNCERTAINTY QUANTIFICATION\n")
+cat("DISTANCE UNCERTAINTY QUANTIFICATION\n")
 cat("=" , rep("=", 79), "\n\n", sep = "")
 
 # Calculate Area of Applicability
@@ -611,7 +940,6 @@ raster_cells <- ncell(covariates)
 cat(paste("Total raster cells:", format(raster_cells, big.mark = ","), "\n"))
 
 if(raster_cells > 5e6) {
-  
   cat("\nLarge raster detected. Using tile-based processing...\n\n")
   
   # Create tiles directory
@@ -774,12 +1102,12 @@ if(raster_cells > 5e6) {
   di_merged <- do.call(mosaic, di_rasters)
   aoa_merged <- do.call(mosaic, aoa_rasters)
   
-  # Save final results
+  # Export
   writeRaster(di_merged, 
-              file.path(output_dir, "08_Dissimilarity_Index.tif"), 
+              file.path(getwd(),output_dir, "FinalPrediction_DissimilarityIndex.tif"), 
               overwrite = TRUE)
   writeRaster(aoa_merged, 
-              file.path(output_dir, "08_AOA_mask.tif"), 
+              file.path(getwd(),output_dir, "FinalPrediction_AOAmask.tif"), 
               overwrite = TRUE)
   
   aoa_result <- list(DI = di_merged, AOA = aoa_merged)
@@ -802,12 +1130,12 @@ if(raster_cells > 5e6) {
     verbose = TRUE
   )
   
-  # Save results
-  writeRaster(aoa_result$DI, 
-              paste0(getwd(),output_dir, "08_Dissimilarity_Index.tif"), 
+  # Export
+  writeRaster(di_merged, 
+              file.path(getwd(),output_dir, "FinalPrediction_DissimilarityIndex.tif"), 
               overwrite = TRUE)
-  writeRaster(aoa_result$AOA, 
-              paste0(getwd(),output_dir, "08_AOA_mask.tif"), 
+  writeRaster(aoa_merged, 
+              file.path(getwd(),output_dir, "FinalPrediction_AOAmask.tif"), 
               overwrite = TRUE)
 }
 
@@ -827,19 +1155,30 @@ aoa_summary <- data.frame(
   )
 )
 
-write.csv(aoa_summary, paste0(getwd(),output_dir, "AOA_SummaryStatistics.csv"), 
+# Export
+write.csv(aoa_summary, file.path(getwd(),output_dir, "FinalPrediction_AoaSummaryStatistics.csv"), 
           row.names = FALSE)
+
 
 cat("\n=== AOA COMPUTATION COMPLETED ===\n")
 print(aoa_summary)
 cat("\n")
 
+plot_prediction <- PlotR(di_merged,
+                         "Spectral",
+                         "DI",
+                         revers = TRUE,
+                         accuracy = 0.01,
+                         ClassIntervallMethod = "quantile",
+                         n_classes = 9)
 
+ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapDI.png"), 
+       plot_prediction, 
+       width = 6, 
+       height = 7, dpi = 300)
 
-
-
-
-
+}
+}
 
 
 
