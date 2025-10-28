@@ -813,32 +813,26 @@ quantiles <- c(0.05, 0.5, 0.95)
 cat("Generating quantile predictions across spatial domain...\n")
 
 # Create separate predictions for each quantile
-soc_q05 <- terra::predict(
-  covariates,
-  qrf_model,
-  na.rm = TRUE,
-  fun = function(model, data) {
-    predict(model, data, what = 0.05)
-  }
-)
+pb <- txtProgressBar(min = 0, max = length(quantiles), style = 3)
 
-soc_q50 <- terra::predict(
- covariates,
-  qrf_model,
-  na.rm = TRUE,
-  fun = function(model, data) {
-    predict(model, data, what = 0.5)
-  }
-)
+for(i in seq_along(quantiles)){
+  # Assign prediction results dynamically using assign()
+  assign(paste0("soc_q", quantiles[i]*100), 
+         terra::predict(
+           covariates,
+           qrf_model,
+           na.rm = TRUE,
+           fun = function(model, data) {
+             predict(model, data, what = quantiles[i])
+           }
+         )
+  )
+  # Update progress bar
+  setTxtProgressBar(pb, i)
+}
+# Close the progress bar
+close(pb)
 
-soc_q95 <- terra::predict(
-  covariates,
-  qrf_model,
-  na.rm = TRUE,
-  fun = function(model, data) {
-    predict(model, data, what = 0.95)
-  }
-)
 
 #ncores <- detectCores() - 1
 #quantile_results <- predict_quantreg_raster(
@@ -852,7 +846,7 @@ soc_q95 <- terra::predict(
 #soc_q95 <- quantile_results$q095
 
 # Combine into one SpatRaster stack
-soc_qrf_pred <- c(soc_q05, soc_q50, soc_q95)
+soc_qrf_pred <- c(soc_q5, soc_q50, soc_q95)
 names(soc_qrf_pred) <- c("SOC_q05", "SOC_q50", "SOC_q95")
 
 
@@ -1179,6 +1173,12 @@ ggsave(file.path(getwd(),output_dir,"FinalPrediction_MapDI.png"),
 
 }
 }
+
+
+
+
+
+
 
 
 
