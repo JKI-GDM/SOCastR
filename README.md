@@ -85,7 +85,8 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 ### 2.1 Findable
 
 **F1: Globally Unique and Persistent Identifier**
-- GitHub repository URL: https://github.com/[username]/SOCastR
+- GitHub tory URL: https://github.com/JKI-GDM/SOCastR
+- JKI Gitea URL: https://gitea.julius-kuehn.de/markus.moeller/SOCastR
 - Zenodo DOI: https://doi.org/10.5281/zenodo.17503422
 - Each release version receives persistent DOI via GitHub-Zenodo integration
 - Archived snapshot for reproducibility
@@ -98,12 +99,12 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 - This FAIR documentation file (readme.md)
 
 **F3: Metadata References Identifier**
-- All documentation explicitly references repository URL and DOI
-- CITATION.cff includes repository and DOI fields
+- All documentation explicitly references tory URL and DOI
+- CITATION.cff includes tory and DOI fields
 - Metadata embedded in code file headers
 
 **F4: Indexed in Searchable Resource**
-- GitHub repository (indexed by Google, Bing, search engines)
+- GitHub tory (indexed by Google, Bing, search engines)
 - Zenodo record (indexed by OpenAIRE, BASE, Google Dataset Search, CERN)
 - Keywords and tags ensure discoverability
 
@@ -112,12 +113,12 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 **A1: Retrievable via Standard Protocol**
 - Code accessible via HTTPS (GitHub)
 - Zenodo archive accessible via HTTPS with REST API
-- No authentication required for access (public repository)
+- No authentication required for access (public tory)
 - Open license facilitates reuse
 
 **A2: Metadata Persists**
 - Zenodo ensures metadata persistence for indefinite period
-- GitHub provides persistent repository structure and history
+- GitHub provides persistent tory structure and history
 - Documentation archived with each release version
 - Code versioning ensures reproducibility
 
@@ -150,7 +151,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 - Parameter defaults and tuning guidance
 
 **R1.1: Clear Usage License**
-- LICENSE file (MIT) in repository root
+- LICENSE file (MIT) in tory root
 - License clearly stated in code headers and documentation
 - Permissive license facilitates both academic and commercial reuse
 
@@ -389,7 +390,7 @@ All parameters are configurable through the main `SOCastR()` function:
 - Model objects: Trained models saved as RDS files
 
 **Version Control:**
-- Git repository: Track code evolution and changes
+- Git tory: Track code evolution and changes
 - Commit history: Document methodology refinements
 - Release tags: Version each analysis run (v1.0.0, v1.0.1, etc.)
 - DOI assignment: Each release gets persistent identifier
@@ -882,7 +883,7 @@ cat("All packages loaded successfully!\n")
 
 Via Git (recommended for version control):
 ```bash
-git clone https://github.com/[username]/SOCastR.git
+git clone https://gitea.julius-kuehn.de/markus.moeller/SOCastR.git
 cd SOCastR
 ```
 
@@ -1535,7 +1536,7 @@ Julius Kühn Institute. https://doi.org/10.5281/zenodo.17503422
   version = {1.0.0},
   year = {2025},
   doi = {10.5281/zenodo.17503422},
-  url = {https://github.com/[username]/SOCastR},
+  url = {https://gitea.julius-kuehn.de/markus.moeller/SOCastR},
   institution = {Julius K{\"u}hn Institute},
   license = {MIT}
 }
