@@ -1,11 +1,10 @@
 # Input Data Sets
-The following data sets representing samples and corvriates for the German federal state Bavaria, which can be used for code excecution:
+The following data sets represent samples and covariates for the German federal state Bavaria, which can be used for code execution:
 
 ## Multi-scale Terrain Attributes and Sentinel-2 Bare Soil Composites 
 Möller, M. (2025). Multi-scale Terrain Attributes and Sentinel-2 Bare Soil Composites for Digital Soil Mapping in Bavaria (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17479135
 
 ## LUCAS 2018 Topsoil Database
-
 This repository uses the LUCAS 2018 Topsoil database as the primary input data set for soil organic carbon (SOC) analyses and digital soil mapping. The LUCAS (Land Use/Cover Area frame Survey) survey provides harmonized, quality-controlled measurements of key soil properties across all EU member states and the UK.
 
 ### Data Description
