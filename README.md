@@ -95,7 +95,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 - CITATION.cff file in Citation File Format 1.2.0 for standardized citation
 - codemeta.json for machine-readable software metadata (Schema.org format)
 - Detailed inline code documentation and roxygen-style function docstrings
-- This FAIR documentation file (SOCastR-FAIR-Docs.md)
+- This FAIR documentation file (readme.md)
 
 **F3: Metadata References Identifier**
 - All documentation explicitly references repository URL and DOI
