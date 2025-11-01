@@ -79,10 +79,10 @@
     "gridExtra (>=2.3)",
     "grid"
   ],
-  "readme": "https://github.com/[username]/SOCastR/blob/main/README.md",
-  "citation": "https://github.com/[username]/SOCastR/blob/main/CITATION.cff",
-  "contIntegration": "https://github.com/[username]/SOCastR",
-  "issueTracker": "https://github.com/[username]/SOCastR/issues",
+  "readme": "https://github.com/JKI-GDM/SOCastR/blob/main/README.md",
+  "citation": "https://github.com/JKI-GDM/SOCastR/blob/main/CITATION.cff",
+  "contIntegration": "https://github.com/JKI-GDM/SOCastR/",
+  "issueTracker": "https://github.com/JKI-GDM/SOCastR/issues",
   "developmentStatus": "active",
   "referencePublication": [
     {
