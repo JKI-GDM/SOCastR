@@ -11,6 +11,7 @@ authors:
     affiliation: "Julius Kühn Institute (JKI), Federal Research Centre for Cultivated Plants"
     orcid: "https://orcid.org/0000-0002-1918-7747"
 repository-code: "https://gitea.julius-kuehn.de/markus.moeller/SOCastR"
+doi: "10.5281/zenodo.XXXXXXX"
 url: "https://gitea.julius-kuehn.de/markus.moeller/SOCastR"
 abstract: "SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that predicts soil organic carbon (SOC) content using Random Forest and Quantile Regression Forest models with rigorous spatial cross-validation, forward feature selection, and uncertainty quantification. The workflow is specifically designed for intermediate-scale mapping with explicit handling of model uncertainty and extrapolation risk assessment."
 keywords:
