@@ -37,7 +37,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 - **Author:** Markus Möller
 - **Institution:** Julius Kühn Institute (JKI), Federal Research Centre for Cultivated Plants
 - **Email:** markus.moeller@julius-kuehn.de
-- **ORCID:** [To be provided if available]
+- **ORCID:** https://orcid.org/0000-0002-1918-7747
 
 ### 1.4 Keywords
 - Digital soil mapping
