@@ -6,7 +6,7 @@
 **Institution:** Julius Kühn Institute  
 **Contact:** markus.moeller@julius-kuehn.de  
 **License:** MIT  
-**DOI:** [To be assigned upon Zenodo publication]
+**DOI:** https://doi.org/10.5281/zenodo.17503422 
 
 ---
 
@@ -86,7 +86,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 
 **F1: Globally Unique and Persistent Identifier**
 - GitHub repository URL: https://github.com/[username]/SOCastR
-- Zenodo DOI: 10.5281/zenodo.[XXXXXXX] (assigned on publication)
+- Zenodo DOI: https://doi.org/10.5281/zenodo.17503422
 - Each release version receives persistent DOI via GitHub-Zenodo integration
 - Archived snapshot for reproducibility
 
@@ -1522,7 +1522,7 @@ plot(samples)         # Visual check for clustering
 ```
 Möller, M. (2025). SOCastR: Soil Organic Carbon Prediction Workflow with 
 Uncertainty Quantification (Version 1.0.0) [Computer software]. 
-Julius Kühn Institute. https://doi.org/10.5281/zenodo.XXXXXXX
+Julius Kühn Institute. https://doi.org/10.5281/zenodo.17503422
 ```
 
 **BibTeX Format:**
@@ -1534,7 +1534,7 @@ Julius Kühn Institute. https://doi.org/10.5281/zenodo.XXXXXXX
            Uncertainty Quantification},
   version = {1.0.0},
   year = {2025},
-  doi = {10.5281/zenodo.XXXXXXX},
+  doi = {10.5281/zenodo.17503422},
   url = {https://github.com/[username]/SOCastR},
   institution = {Julius K{\"u}hn Institute},
   license = {MIT}
@@ -1551,13 +1551,13 @@ message: "If you use this software in your research, please cite it as follows."
 authors:
   - family-names: "Möller"
     given-names: "Markus"
-    orcid: "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
+    orcid: "https://orcid.org/0000-0002-1918-7747"
     affiliation: "Julius Kühn Institute, Germany"
 title: "SOCastR: Soil Organic Carbon Prediction Workflow with Uncertainty Quantification"
 version: 1.0.0
 date-released: "2025-11-01"
-doi: "10.5281/zenodo.XXXXXXX"
-repository-code: "https://github.com/[username]/SOCastR"
+doi: "10.5281/zenodo.17503422"
+repository-code: "https://gitea.julius-kuehn.de/markus.moeller/SOCastR"
 license: "MIT"
 keywords:
   - "digital-soil-mapping"
@@ -1597,11 +1597,11 @@ https://doi.org/10.1023/A:1010933404324
 
 ### 9.4 Acknowledgments
 
-**Funding:** [Add funding information]
+**Funding:** The project KoBoS was funded by the Federal Ministry of Agriculture, Food and Regional Identity as part of the German Climate Protection Programme 2022.
 
-**Data Sources:** [Acknowledge data providers and sources]
-
-**Computational Resources:** [Acknowledge HPC facilities if used]
+**Data Sources:** 
+- Terrain Attributes: Federal Agency for Cartography and Geodesy, Frankfurt (Main), Germany, 
+- Soil Reflectance Composites: German Aerospace Center (DLR), The Remote Sensing Technology Institute, Munich, Germany
 
 **Contributors:** [List collaborators, reviewers, and their roles]
 
