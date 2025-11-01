@@ -1,0 +1,90 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as follows."
+title: "SOCastR: Soil Organic Carbon Prediction Workflow with Uncertainty Quantification"
+version: 1.0.0
+date-released: "2025-11-01"
+authors:
+  - family-names: "Möller"
+    given-names: "Markus"
+    email: "markus.moeller@julius-kuehn.de"
+    affiliation: "Julius Kühn Institute, Federal Research Centre for Cultivated Plants, Germany"
+    orcid: "https://orcid.org/XXXX-XXXX-XXXX-XXXX"
+abstract: >
+  SOCastR implements a comprehensive workflow for digital soil mapping of 
+  soil organic carbon using Random Forest and Quantile Regression Forest 
+  with spatial cross-validation and Area of Applicability assessment. 
+  The workflow includes forward feature selection, external validation, 
+  and ISO 19157 compliant data quality assessment. It provides spatially 
+  explicit uncertainty quantification through two complementary methods: 
+  model-based uncertainty (quantile regression) and distance-based 
+  uncertainty (dissimilarity index and AOA).
+keywords:
+  - "digital-soil-mapping"
+  - "machine-learning"
+  - "soil-organic-carbon"
+  - "random-forest"
+  - "uncertainty-quantification"
+  - "spatial-cross-validation"
+  - "R"
+  - "CAST"
+  - "quantile-regression"
+  - "area-of-applicability"
+  - "ISO-19157"
+license: MIT
+repository-code: "https://github.com/[username]/SOCastR"
+doi: "10.5281/zenodo.XXXXXXX"
+type: software
+programming-languages:
+  - R
+operating-systems:
+  - Windows
+  - Linux
+  - macOS
+requirements:
+  - "R >= 4.0.0"
+references:
+  - type: article
+    authors:
+      - family-names: "Meyer"
+        given-names: "Hanna"
+      - family-names: "Pebesma"
+        given-names: "Edzer"
+    title: "Machine learning-based global maps of ecological variables and the challenge of assessing them"
+    journal: "Nature Communications"
+    volume: 13
+    issue: 1
+    year: 2022
+    doi: "10.1038/s41467-022-29838-9"
+  - type: article
+    authors:
+      - family-names: "Meinshausen"
+        given-names: "Nicolai"
+    title: "Quantile regression forests"
+    journal: "Journal of Machine Learning Research"
+    volume: 7
+    year: 2006
+    pages: "983-999"
+  - type: article
+    authors:
+      - family-names: "Breiman"
+        given-names: "Leo"
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    pages: "5-32"
+    doi: "10.1023/A:1010933404324"
+  - type: article
+    authors:
+      - family-names: "Meyer"
+        given-names: "Hanna"
+      - family-names: "Pebesma"
+        given-names: "Edzer"
+    title: "Predicting into unknown space? Estimating the area of applicability of spatial prediction models"
+    journal: "Methods in Ecology and Evolution"
+    volume: 12
+    issue: 9
+    year: 2021
+    pages: "1620-1633"
+    doi: "10.1111/2041-210X.13650"
