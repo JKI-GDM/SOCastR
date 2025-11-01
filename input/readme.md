@@ -1,7 +1,8 @@
 # Input Data Sets
-The following data sets can be used for running the code:
+The following data sets representing samples and corvriates for the German federal state Bavaria, which can be used for code excecution:
 
-## Möller, M. (2025). Multi-scale Terrain Attributes and Sentinel-2 Bare Soil Composites for Digital Soil Mapping in Bavaria (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17479135
+## Multi-scale Terrain Attributes and Sentinel-2 Bare Soil Composites 
+Möller, M. (2025). Multi-scale Terrain Attributes and Sentinel-2 Bare Soil Composites for Digital Soil Mapping in Bavaria (1.0.0) [Data set]. Zenodo. https://doi.org/10.5281/zenodo.17479135
 
 ## LUCAS 2018 Topsoil Database
 
