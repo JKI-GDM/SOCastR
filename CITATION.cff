@@ -7,7 +7,7 @@ date-released: "2025-11-01"
 authors:
   - family-names: Möller
     given-names: Markus
-    email: [email protected]
+    email: markus.moeller@julius-kuehn.de
     affiliation: "Julius Kühn Institute (JKI), Federal Research Centre for Cultivated Plants"
     orcid: "https://orcid.org/0000-0002-1918-7747"
 repository-code: "https://github.com/JKI-GDM/SOCastR"
