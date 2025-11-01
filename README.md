@@ -444,7 +444,6 @@ Intermediate-scale digital soil mapping of soil organic carbon content (1:50,000
 - Landscape-scale land management planning
 - Environmental impact assessment and modeling
 - Regional soil quality assessments
-- Groundwater vulnerability mapping (SOC as proxy)
 
 **Geographic Scale:**
 - **Spatial Resolution:** 10m to 100m typical (defined by covariate resolution)
