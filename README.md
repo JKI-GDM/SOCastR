@@ -428,16 +428,6 @@ Agent: SOCastR_v1.0.0
   wasAssociatedWith: RandomForestAlgorithm, QuantileRegressionForest
 ```
 
-**Recommended Provenance Documentation:**
-Document a processing log file containing:
-- Execution date/time (start and end)
-- Software versions (R version, all package versions)
-- Input file checksums (MD5 or SHA256 hashes)
-- Processing parameters and settings
-- Computation time per step
-- System information (OS, CPU cores, RAM)
-- Output file locations and sizes
-
 ---
 
 ## 4. Fitness-for-Purpose Assessment
