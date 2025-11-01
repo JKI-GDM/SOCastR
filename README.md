@@ -661,28 +661,27 @@ Measured through spatial cross-validation and independent test set validation.
 **Statement Example:**
 ```
 Spatial Cross-Validation Performance:
-- Mean RMSE: 2.34 g/kg
+- Mean RMSE: 2.34 %
 - R² (median): 0.62
 - Interpretation: Model explains 62% of SOC variance
 
 Independent Test Set Performance:
-- RMSE: 2.51 g/kg
+- RMSE: 2.51 %
 - R²: 0.58
-- Bias: -0.12 g/kg (slight underprediction)
+- Bias: -0.12 % (slight underprediction)
 - RMSE_percent: 18.3%
 - Interpretation: Model performs well on independent data; nearly unbiased
 ```
 
 #### 5.3.5 Temporal Quality
-Temporal quality was not assessed. If information are available, the following data quality elements should be used:
 - **DQ_TemporalConsistency:**
-- **Temporal Coverage:** Samples collected within [date range]
-- **Covariate Temporal Basis:** Covariates valid for [time period]
-- **Synchronization:** [Describe alignment or temporal mismatch]
+- **Temporal Coverage:** Samples collected within [date range] (user specification)
+- **Covariate Temporal Basis:** Covariates valid for 30 years
+- **Synchronization:** [Describe alignment or temporal mismatch] (user specification)
 
 **DQ_TemporalValidity:**
-- **Valid From:** [Effective date]
-- **Valid To:** [Recommended end date or "Indefinite"]
+- **Valid From:** [Effective date] (user specification)
+- **Valid To:** [Recommended end date or "Indefinite"] (user specification)
 - **Statement:** "Model applicable to conditions similar to training period. Recalibration recommended if climate or land cover changes substantially (>10 year gap)."
 
 #### 5.3.6 Usability
@@ -710,7 +709,7 @@ Temporal quality was not assessed. If information are available, the following d
 - **Measure Type:** Indirect (estimated via cross-validation)
 - **Evaluation Method:** K-fold spatial CV with KNNDM fold creation
 - **Data Quality Value:** [RMSE value] ± [SD]
-- **Value Unit:** g/kg or % (same as SOC measurement unit)
+- **Value Unit:** %
 - **Evaluation Result:** File `FinalModel_Accuracy.csv`
 - **Uncertainty:** Standard deviation across CV folds
 
@@ -720,7 +719,7 @@ Temporal quality was not assessed. If information are available, the following d
 - **Measure Type:** Direct external validation
 - **Evaluation Method:** Predict on spatially independent test set (fold 1, CreateSpacetimeFolds)
 - **Data Quality Value:** [RMSE] [MAE] [R²] [Bias]
-- **Value Unit:** g/kg or %
+- **Value Unit:** %
 - **Evaluation Result:** File `Validation_PerformanceComparison.csv`
 - **Significance:** Unbiased estimate of model performance on novel data
 
@@ -887,7 +886,7 @@ git clone https://github.com/[username]/SOCastR.git
 cd SOCastR
 ```
 
-Or download ZIP directly from GitHub and extract.
+Or download ZIP directly from GitHub/Gitea and extract.
 
 **Step 3: Verify Installation**
 
@@ -937,7 +936,7 @@ project_directory/
 - **Geometry:** Point features only (no lines or polygons)
 - **CRS:** Any projected coordinate system (EPSG code preferred, e.g., EPSG:25832 for UTM Zone 32N)
 - **Attributes:**
-  - SOC column (numeric, required): Soil organic carbon concentration (% or g/kg)
+  - SOC column (numeric, required): Soil organic carbon concentration (%)
   - Other columns optional but will be preserved
 - **Quality:**
   - No duplicate point locations
@@ -1237,7 +1236,7 @@ output/
 - **Format:** GeoTIFF (LZW compression)
 - **Bands:** 1
 - **Data Type:** Float32
-- **Unit:** % or g/kg (same as input)
+- **Unit:** %  (same as input)
 - **NoData Value:** Pixels outside raster extent or with missing covariates
 - **CRS:** Same as input covariates (EPSG code embedded)
 - **Resolution:** Identical to covariate rasters
@@ -1252,7 +1251,7 @@ output/
   - Band 3: Q95 (95th percentile, upper confidence bound)
   - Band 4: PIW (Prediction Interval Width = Q95 - Q05)
 - **Data Type:** Float32
-- **Unit:** % or g/kg
+- **Unit:** %
 - **Interpretation:**
   - Narrow intervals (small PIW) = higher local certainty
   - Wide intervals (large PIW) = higher local uncertainty
@@ -1866,7 +1865,7 @@ Ready for publication: YES
                 <gco:Record>2.34</gco:Record>
               </mdq:value>
               <mdq:valueUnit>
-                <gco:CharacterString>g/kg</gco:CharacterString>
+                <gco:CharacterString>%</gco:CharacterString>
               </mdq:valueUnit>
             </mdq:DQ_QuantitativeResult>
           </mdq:result>
@@ -1898,4 +1897,4 @@ Ready for publication: YES
 
 **End of Documentation**
 
-This FAIR documentation comprehensively covers all aspects of the SOCastR workflow, including provenance, fitness-for-purpose assessment, and ISO 19157 compliant data quality metadata. It is ready for publication on GitHub and Zenodo.
+This FAIR documentation comprehensively covers all aspects of the SOCastR workflow, including provenance, fitness-for-purpose assessment, and ISO 19157 compliant data quality metadata.
