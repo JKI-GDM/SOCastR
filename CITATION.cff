@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+title: "SOCastR: Soil Organic Carbon Prediction Workflow with Spatially Explicit Uncertainty Quantification"
+version: 1.0.0
+date-released: "2025-11-01"
+authors:
+  - family-names: Möller
+    given-names: Markus
+    email: [email protected]
+    affiliation: "Julius Kühn Institute (JKI), Federal Research Centre for Cultivated Plants"
+    orcid: "https://orcid.org/0000-0002-1918-7747"
+repository-code: "https://gitea.julius-kuehn.de/markus.moeller/SOCastR"
+url: "https://gitea.julius-kuehn.de/markus.moeller/SOCastR"
+abstract: "SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that predicts soil organic carbon (SOC) content using Random Forest and Quantile Regression Forest models with rigorous spatial cross-validation, forward feature selection, and uncertainty quantification. The workflow is specifically designed for intermediate-scale mapping with explicit handling of model uncertainty and extrapolation risk assessment."
+keywords:
+  - digital-soil-mapping
+  - soil-organic-carbon
+  - random-forest
+  - machine-learning
+  - uncertainty-quantification
+  - spatial-cross-validation
+  - quantile-regression-forest
+  - area-of-applicability
+  - dissimilarity-index
+  - forward-feature-selection
+  - CAST-package
+  - R-programming
+  - ISO-19157
+license: MIT
