@@ -674,8 +674,8 @@ Independent Test Set Performance:
 ```
 
 #### 5.3.5 Temporal Quality
-
-**DQ_TemporalConsistency:**
+Temporal quality was not assessed. If information are available, the following data quality elements should be used:
+- **DQ_TemporalConsistency:**
 - **Temporal Coverage:** Samples collected within [date range]
 - **Covariate Temporal Basis:** Covariates valid for [time period]
 - **Synchronization:** [Describe alignment or temporal mismatch]
