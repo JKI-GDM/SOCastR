@@ -180,7 +180,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 - **Coordinate Reference System**: Any projected CRS (e.g., EPSG:25832 for UTM Zone 32N)
 - **Required Attributes**: 
   - SOC measurement column (numeric, user-specified via `soc_column` parameter)
-  - Unit: % or g/kg (must be consistent across all samples)
+  - Unit: % 
 - **Quality Requirements**: 
   - No duplicate locations (same coordinates)
   - Valid coordinates within study area
