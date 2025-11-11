@@ -1,7 +1,7 @@
 # SOCastR: Soil Organic Carbon Prediction Workflow with Spatially Explicit Uncertainty Quantification
 
-**Version:** 1.0.0  
-**Date:** 2025-11-01  
+**Version:** 1.1 
+**Date:** 2025-11-11  
 **Author:** Markus Möller  
 **Institution:** Julius Kühn Institute  
 **Contact:** markus.moeller@julius-kuehn.de  
