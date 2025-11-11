@@ -1,4 +1,4 @@
-# SOCastR: Soil Organic Carbon Prediction Workflow with Uncertainty Quantification
+# SOCastR: Soil Organic Carbon Prediction Workflow with Spatially Explicit Uncertainty Quantification
 
 **Version:** 1.0.0  
 **Date:** 2025-11-01  
@@ -6,7 +6,7 @@
 **Institution:** Julius Kühn Institute  
 **Contact:** markus.moeller@julius-kuehn.de  
 **License:** MIT  
-**DOI:** https://doi.org/10.5281/zenodo.17503422 
+**DOI:** https://doi.org/10.5281/zenodo.17580244
 
 ---
 
@@ -87,7 +87,7 @@ SOCastR is a comprehensive R-based workflow for digital soil mapping (DSM) that 
 **F1: Globally Unique and Persistent Identifier**
 - GitHub tory URL: https://github.com/JKI-GDM/SOCastR
 - JKI Gitea URL: https://gitea.julius-kuehn.de/markus.moeller/SOCastR
-- Zenodo DOI: https://doi.org/10.5281/zenodo.17503422
+- Zenodo DOI: https://doi.org/10.5281/zenodo.17580244
 - Each release version receives persistent DOI via GitHub-Zenodo integration
 - Archived snapshot for reproducibility
 
@@ -1523,7 +1523,7 @@ plot(samples)         # Visual check for clustering
 ```
 Möller, M. (2025). SOCastR: Soil Organic Carbon Prediction Workflow with 
 Uncertainty Quantification (Version 1.0.0) [Computer software]. 
-Julius Kühn Institute. https://doi.org/10.5281/zenodo.17503422
+Julius Kühn Institute. https://doi.org/10.5281/zenodo.17580244
 ```
 
 **BibTeX Format:**
@@ -1554,7 +1554,7 @@ authors:
     given-names: "Markus"
     orcid: "https://orcid.org/0000-0002-1918-7747"
     affiliation: "Julius Kühn Institute, Germany"
-title: "SOCastR: Soil Organic Carbon Prediction Workflow with Uncertainty Quantification"
+title: "SOCastR: Soil Organic Carbon Prediction Workflow with Spatially Explicit Uncertainty Quantification"
 version: 1.0.0
 date-released: "2025-11-01"
 doi: "10.5281/zenodo.17503422"
@@ -1695,7 +1695,7 @@ https://doi.org/10.1023/A:1010933404324
 
 ```
 ================================================================================
-SOCastR: Soil Organic Carbon (SOC) prediction workflow with uncertainties
+SOCastR: SOCastR: Soil Organic Carbon Prediction Workflow with Spatially Explicit Uncertainty Quantification
 ================================================================================
 
 Date: 2025-11-01
