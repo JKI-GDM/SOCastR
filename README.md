@@ -1533,9 +1533,9 @@ Julius Kühn Institute. https://doi.org/10.5281/zenodo.17580244
   author = {M{\"o}ller, Markus},
   title = {{SOCastR}: Soil Organic Carbon Prediction Workflow with 
            Uncertainty Quantification},
-  version = {1.0.0},
+  version = {1.1},
   year = {2025},
-  doi = {10.5281/zenodo.17503422},
+  doi = {10.5281/zenodo.17580244},
   url = {https://gitea.julius-kuehn.de/markus.moeller/SOCastR},
   institution = {Julius K{\"u}hn Institute},
   license = {MIT}
